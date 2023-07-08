@@ -1,0 +1,6 @@
+INFO: Starting map stage
+INFO: Finished map executions: 1
+INFO: Starting group stage
+INFO: Starting reduce stage
+INFO: Finished reduce executions: 1
+INFO: Output directory: output0

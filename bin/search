@@ -1,0 +1,89 @@
+#!/bin/bash
+# insta485db
+
+
+# Stop on errors
+# See https://vaneyckt.io/posts/safer_bash_scripts_with_set_euxo_pipefail/
+#set -Eeuo pipefail
+# commented this out^
+
+
+# Sanity check command line options
+usage() {
+  echo "Usage: $0 (start|stop|status|restart)"
+}
+
+# Check to make sure there is an input
+if [ $# -ne 1 ]; then
+  usage
+  exit 1
+fi
+
+
+# Parse argument.  $1 is the first argument
+case $1 in
+  "start")
+    echo "starting search server ..."
+
+    FILE=var/search.sqlite3 # first check if the sqlite db exists
+    if [ -f "$FILE" ]; then
+      echo "$FILE exists."
+    else 
+      echo "$FILE does not exist."
+      exit 1
+    fi
+
+    # check if index server is running - it needs to be
+    set +o pipefail
+
+    ./bin/index status
+    status=$?
+    if [ $status -eq 0 ]; then
+      echo "index server running - from search"
+    else
+      echo "index status non-zero: exiting - from search"
+      exit 1
+    fi
+
+    # check if search server is running - it cant
+    echo "TRYING TO RUN STATUS"
+    ./bin/search status
+    status2=$?
+    if [ $status2 -eq 0 ]; then
+      echo "search server already running"
+      exit 1
+    fi
+
+    mkdir -p var/log
+    rm -f var/log/search.log
+    flask --app search run --host 0.0.0.0 --port 8000 &> var/log/search.log &
+    ;;
+
+
+  "stop")
+    pkill -f "flask --app search run --host 0.0.0.0 --port 8000" || true
+    ;;
+
+  "status")
+    echo "IN STATUS"
+    set +o pipefail
+    NPROCS=$(pgrep -f "flask --app search run --host 0.0.0.0 --port 8000"| wc -l)  
+    # -f to find it, -c for a count
+    set -o pipefail
+    echo $NPROCS
+    if [ "$NPROCS" -eq 1 ]; then
+      echo "search server running - search status"
+      exit 0
+    else
+      echo "search server not running - search status"
+      exit 1
+    fi
+    ;;
+
+  # Double check to make sure this calls the stop and start scripts correctly :)
+  "restart")
+    echo "stopping mapreduce ..."
+    ./bin/search stop
+    ./bin/search start
+    ;;
+esac

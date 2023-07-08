@@ -1,0 +1,118 @@
+============================= test session starts ==============================
+platform linux -- Python 3.10.6, pytest-7.2.2, pluggy-1.0.0 -- /home/jkolbert/eecs485/p5/env/bin/python3
+cachedir: .pytest_cache
+rootdir: /home/jkolbert/eecs485/p5
+plugins: mock-3.10.0
+collecting ... collected 3 items
+
+tests/test_style.py::test_pycodestyle PASSED                             [ 33%]
+tests/test_style.py::test_pydocstyle PASSED                              [ 66%]
+tests/test_style.py::test_pylint FAILED                                  [100%]
+
+=================================== FAILURES ===================================
+_________________________________ test_pylint __________________________________
+
+    def test_pylint():
+        """Run pylint."""
+        assert_no_prohibited_terms("nopep8", "noqa", "pylint")
+        mapreduce_files = glob.glob("inverted_index/*.py")
+>       subprocess.run([
+            "pylint",
+            "--rcfile", utils.TESTDATA_DIR/"pylintrc",
+            "--disable=cyclic-import",
+            "--unsafe-load-any-extension=y",
+            "--min-similarity-lines=10",
+            "index_server/index",
+            "search_server/search",
+            *mapreduce_files,
+        ], check=True)
+
+tests/test_style.py:33: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+input = None, capture_output = False, timeout = None, check = True
+popenargs = (['pylint', '--rcfile', PosixPath('/home/jkolbert/eecs485/p5/tests/testdata/pylintrc'), '--disable=cyclic-import', '--unsafe-load-any-extension=y', '--min-similarity-lines=10', ...],)
+kwargs = {}
+process = <Popen: returncode: 24 args: ['pylint', '--rcfile', PosixPath('/home/jkolber...>
+stdout = None, stderr = None, retcode = 24
+
+    def run(*popenargs,
+            input=None, capture_output=False, timeout=None, check=False, **kwargs):
+        """Run command with arguments and return a CompletedProcess instance.
+    
+        The returned instance will have attributes args, returncode, stdout and
+        stderr. By default, stdout and stderr are not captured, and those attributes
+        will be None. Pass stdout=PIPE and/or stderr=PIPE in order to capture them.
+    
+        If check is True and the exit code was non-zero, it raises a
+        CalledProcessError. The CalledProcessError object will have the return code
+        in the returncode attribute, and output & stderr attributes if those streams
+        were captured.
+    
+        If timeout is given, and the process takes too long, a TimeoutExpired
+        exception will be raised.
+    
+        There is an optional argument "input", allowing you to
+        pass bytes or a string to the subprocess's stdin.  If you use this argument
+        you may not also use the Popen constructor's "stdin" argument, as
+        it will be used internally.
+    
+        By default, all communication is in bytes, and therefore any "input" should
+        be bytes, and the stdout and stderr will be bytes. If in text mode, any
+        "input" should be a string, and stdout and stderr will be strings decoded
+        according to locale encoding, or by "encoding" if set. Text mode is
+        triggered by setting any of text, encoding, errors or universal_newlines.
+    
+        The other arguments are the same as for the Popen constructor.
+        """
+        if input is not None:
+            if kwargs.get('stdin') is not None:
+                raise ValueError('stdin and input arguments may not both be used.')
+            kwargs['stdin'] = PIPE
+    
+        if capture_output:
+            if kwargs.get('stdout') is not None or kwargs.get('stderr') is not None:
+                raise ValueError('stdout and stderr arguments may not be used '
+                                 'with capture_output.')
+            kwargs['stdout'] = PIPE
+            kwargs['stderr'] = PIPE
+    
+        with Popen(*popenargs, **kwargs) as process:
+            try:
+                stdout, stderr = process.communicate(input, timeout=timeout)
+            except TimeoutExpired as exc:
+                process.kill()
+                if _mswindows:
+                    # Windows accumulates the output in a single blocking
+                    # read() call run on child threads, with the timeout
+                    # being done in a join() on those threads.  communicate()
+                    # _after_ kill() is required to collect that and add it
+                    # to the exception.
+                    exc.stdout, exc.stderr = process.communicate()
+                else:
+                    # POSIX _communicate already populated the output so
+                    # far into the TimeoutExpired exception.
+                    process.wait()
+                raise
+            except:  # Including KeyboardInterrupt, communicate handled that.
+                process.kill()
+                # We don't call process.wait() as .__exit__ does that for us.
+                raise
+            retcode = process.poll()
+            if check and retcode:
+>               raise CalledProcessError(retcode, process.args,
+                                         output=stdout, stderr=stderr)
+E               subprocess.CalledProcessError: Command '['pylint', '--rcfile', PosixPath('/home/jkolbert/eecs485/p5/tests/testdata/pylintrc'), '--disable=cyclic-import', '--unsafe-load-any-extension=y', '--min-similarity-lines=10', 'index_server/index', 'search_server/search', 'inverted_index/reduce4.py', 'inverted_index/reduce1.py', 'inverted_index/reduce2.py', 'inverted_index/map3.py', 'inverted_index/map1.py', 'inverted_index/map2.py', 'inverted_index/map0.py', 'inverted_index/map4.py', 'inverted_index/reduce3.py', 'inverted_index/map5.py', 'inverted_index/reduce5.py', 'inverted_index/reduce0.py']' returned non-zero exit status 24.
+
+/usr/lib/python3.10/subprocess.py:524: CalledProcessError
+----------------------------- Captured stdout call -----------------------------
+************* Module index.api.services
+index_server/index/api/services.py:120:0: R0914: Too many local variables (21/15) (too-many-locals)
+index_server/index/api/services.py:131:4: C0206: Consider iterating with .items() (consider-using-dict-items)
+
+------------------------------------------------------------------
+Your code has been rated at 9.94/10 (previous run: 9.94/10, +0.00)
+
+=========================== short test summary info ============================
+FAILED tests/test_style.py::test_pylint - subprocess.CalledProcessError: Comm...
+========================= 1 failed, 2 passed in 7.55s ==========================

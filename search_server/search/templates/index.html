@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <title> ask485 </title>
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/style.css') }}">
+    <link href="https://fonts.googleapis.com/css?family=Montserrat" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css?family=Roboto" rel="stylesheet">
+</head>
+
+    <div>
+        <div class="ask485"> ask485? </div>
+
+        <!-- DO NOT CHANGE THIS (aside from where we say 'FIXME') -->
+        <div class="search_bar">
+            <form action="/" method="GET">
+            <div>
+                <input type="text" name="q" value="{{query}}">
+            </div>
+            <div>
+                <input type="range" name="w" min="0"
+                max="1" value="{{weight}}" step="0.01">
+            </div>
+            <div class="pagerank_weight"> 
+                Pagerank Weight
+            </div>
+            <input type="submit" value="Search">
+            </form>
+        </div>
+
+        {% if lenHit == 0 and query != "" %} <!--If there are no search results, print msg-->
+            <div class="no_results">
+                No search results found!
+            </div>
+        {% else %}
+            <div class="docs"> <!--Otherwise, show search results-->
+                {% for hit in hits %}
+                    <div> <!--Printing Url if available-->
+                        <div>
+                        {% if hit.lenUrl == 0 %}
+                            <a class="doc_url"> No url available </a>
+                        {% else %}
+                            <a class="doc_url" href={{hit.url}}>{{ hit.url }}</a>
+                        {% endif %}
+                        </div>
+                    </div>
+
+                    <div class="doc_title">
+                        {{ hit.title }}
+                    </div>
+
+                    <div class="doc_summary">
+                            {% if hit.lenSum == 0 %}
+                                No summary available
+                            {% else %}
+                                {{ hit.summary }}
+                            {% endif %}
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+    </div>
+</html>

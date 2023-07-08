@@ -1,0 +1,14 @@
+#!/bin/bash
+# install
+
+
+# Stop on errors
+# See https://vaneyckt.io/posts/safer_bash_scripts_with_set_euxo_pipefail/
+set -Eeuo pipefail
+
+cd inverted_index
+./pipeline.sh example_input
+
+diff example_output/part-00000 output5/part-00000
+diff example_output/part-00001 output5/part-00001
+diff example_output/part-00002 output5/part-00002
